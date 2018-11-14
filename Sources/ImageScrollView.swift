@@ -61,7 +61,7 @@ open class ImageScrollView: UIScrollView {
     }
     
     deinit {
-        NotificationCenter.default.removeObserver(self)
+        NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
     }
     
     fileprivate func initialize() {
@@ -71,7 +71,10 @@ open class ImageScrollView: UIScrollView {
         decelerationRate = UIScrollView.DecelerationRate.fast
         delegate = self
         
-        NotificationCenter.default.addObserver(self, selector: #selector(ImageScrollView.changeOrientationNotification), name: Notification.Name.UIDevice.orientationDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(forName: UIDevice.orientationDidChangeNotification,
+                                               object: self,
+                                               queue: .main,
+                                               using: didRotate)
     }
     
     @objc public func adjustFrameToCenter() {
@@ -263,8 +266,10 @@ open class ImageScrollView: UIScrollView {
     
     // MARK: - Actions
     
-    @objc func changeOrientationNotification() {
-        configureImageForSize(imageSize)
+    var didRotate: (Notification) -> Void = { notification in
+        if let scrollView = notification.object as? ImageScrollView {
+            scrollView.configureImageForSize(scrollView.imageSize)
+        }
     }
 }
 
